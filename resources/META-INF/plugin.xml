@@ -1,0 +1,27 @@
+<idea-plugin>
+  <id>org.turbanov.commits.message.checker</id>
+  <name>Commit message checker</name>
+  <version>1.0</version>
+  <vendor email="turbanoff@gmail.com" url="https://github.com/turbanoff/CommitMessageChecker">Turbanov Andrey</vendor>
+
+  <description><![CDATA[
+      Checks that commit message contains reference to the same issue as branch
+    ]]></description>
+
+  <change-notes><![CDATA[
+    ]]>
+  </change-notes>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="143.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.modules.vcs</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <checkinHandlerFactory implementation="org.turbanov.commits.CommitMessageCheckinHandlerFactory"/>
+  </extensions>
+
+</idea-plugin>
