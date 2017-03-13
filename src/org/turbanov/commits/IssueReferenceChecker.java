@@ -4,17 +4,21 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.intellij.dvcs.repo.Repository;
 import com.intellij.dvcs.repo.VcsRepositoryManager;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
+import com.intellij.openapi.vcs.IssueNavigationConfiguration;
+import com.intellij.openapi.vcs.changes.issueLinks.IssueLinkHtmlRenderer;
 import com.intellij.openapi.vcs.checkin.CheckinHandler;
 import com.intellij.openapi.vcs.ui.RefreshableOnComponent;
 import com.intellij.util.ui.UIUtil;
@@ -25,7 +29,6 @@ import com.intellij.util.ui.UIUtil;
  */
 class IssueReferenceChecker extends CheckinHandler {
     private static final String CHECKER_STATE_KEY = "COMMIT_MESSAGE_ISSUE_CHECKER_STATE_KEY";
-    private static final Pattern ISSUE_REF_PATTERN = Pattern.compile("DXCORE-\\d{4,}");
     private final CheckinProjectPanel panel;
 
     public IssueReferenceChecker(CheckinProjectPanel panel) {
@@ -68,28 +71,42 @@ class IssueReferenceChecker extends CheckinHandler {
     public ReturnResult beforeCheckin() {
         if (!isCheckMessageEnabled()) return super.beforeCheckin();
 
-        VcsRepositoryManager repoManager = VcsRepositoryManager.getInstance(panel.getProject());
-        Collection<Repository> repositories = repoManager.getRepositories();
-        Optional<Boolean> shouldCommit = repositories.stream()
+        Project project = panel.getProject();
+        IssueNavigationConfiguration configuration = IssueNavigationConfiguration.getInstance(project);
+        VcsRepositoryManager repoManager = VcsRepositoryManager.getInstance(project);
+        Optional<Boolean> shouldCommit = repoManager.getRepositories().stream()
                 .map(Repository::getCurrentBranchName)
                 .filter(Objects::nonNull)
-                .map(ISSUE_REF_PATTERN::matcher)
-                .filter(Matcher::find)
-                .map(Matcher::group)
+                .flatMap(s -> match(configuration, s))
+                .filter(pair -> pair.first.find())
+                .map(pair -> Pair.create(pair.first.group(), pair.second))
                 .findFirst()
-                .map(this::findReferenceInMessage);
+                .map(branchMatch -> findReferenceInMessage(branchMatch, project));
         return shouldCommit.orElse(true) ? ReturnResult.COMMIT : ReturnResult.CANCEL;
     }
 
-    private boolean findReferenceInMessage(String fromBranch) {
+    private Stream<Pair<Matcher, Pattern>> match(IssueNavigationConfiguration configuration, String s) {
+        return configuration.getLinks().stream()
+                .map(link -> {
+                    Pattern pattern = link.getIssuePattern();
+                    Matcher matcher = pattern.matcher(s);
+                    return Pair.create(matcher, pattern);
+                });
+    }
+
+    private boolean findReferenceInMessage(Pair<String, Pattern> branchMatch, Project project) {
         String commitMessage = panel.getCommitMessage();
-        Matcher matcher = ISSUE_REF_PATTERN.matcher(commitMessage);
+        Pattern pattern = branchMatch.second;
+        Matcher matcher = pattern.matcher(commitMessage);
+        String fromBranch = branchMatch.first;
         while (matcher.find()) {
             if (matcher.group().equals(fromBranch)) return true;
         }
 
-        int yesNo = Messages.showYesNoDialog("Commit message doesn't contain reference to the issue " + fromBranch +
-                ".\nAre you sure to commit as is?",
+        String message = "Commit message doesn't contain reference to the issue " + fromBranch +
+                ".\nAre you sure to commit as is?";
+        String html = IssueLinkHtmlRenderer.formatTextIntoHtml(project, message);
+        int yesNo = Messages.showYesNoDialog(html,
                 "Missing Issue Reference",
                 UIUtil.getWarningIcon());
         return yesNo == Messages.YES;

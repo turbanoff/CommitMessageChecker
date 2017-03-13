@@ -5,7 +5,8 @@
   <vendor email="turbanoff@gmail.com" url="https://github.com/turbanoff/CommitMessageChecker">Turbanov Andrey</vendor>
 
   <description><![CDATA[
-      Checks that commit message contains reference to the same issue as branch
+Checks that commit message contains reference to the same issue as branch.
+Useful with one-branch-per-issue policy.
     ]]></description>
 
   <change-notes><![CDATA[
