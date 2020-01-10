@@ -15,7 +15,7 @@ import com.intellij.dvcs.repo.VcsRepositoryManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Trinity;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 import com.intellij.openapi.vcs.IssueNavigationConfiguration;
 import com.intellij.openapi.vcs.changes.issueLinks.IssueLinkHtmlRenderer;
@@ -77,34 +77,36 @@ class IssueReferenceChecker extends CheckinHandler {
         Optional<Boolean> shouldCommit = repoManager.getRepositories().stream()
                 .map(Repository::getCurrentBranchName)
                 .filter(Objects::nonNull)
-                .flatMap(s -> match(configuration, s))
-                .filter(pair -> pair.first.find())
-                .map(pair -> Pair.create(pair.first.group(), pair.second))
+                .flatMap(branchName -> match(configuration, branchName))
+                .filter(trinity -> trinity.first.find())
+                .map(trinity -> Trinity.create(trinity.first.group(), trinity.second, trinity.third))
                 .findFirst()
                 .map(branchMatch -> findReferenceInMessage(branchMatch, project));
         return shouldCommit.orElse(true) ? ReturnResult.COMMIT : ReturnResult.CANCEL;
     }
 
-    private Stream<Pair<Matcher, Pattern>> match(IssueNavigationConfiguration configuration, String s) {
+    private Stream<Trinity<Matcher, Pattern, String>> match(IssueNavigationConfiguration configuration, String branch) {
         return configuration.getLinks().stream()
                 .map(link -> {
                     Pattern pattern = link.getIssuePattern();
-                    Matcher matcher = pattern.matcher(s);
-                    return Pair.create(matcher, pattern);
+                    Matcher matcher = pattern.matcher(branch);
+                    return Trinity.create(matcher, pattern, branch);
                 });
     }
 
-    private boolean findReferenceInMessage(Pair<String, Pattern> branchMatch, Project project) {
+    private boolean findReferenceInMessage(Trinity<String, Pattern, String> branchMatch, Project project) {
         String commitMessage = panel.getCommitMessage();
         Pattern pattern = branchMatch.second;
         Matcher matcher = pattern.matcher(commitMessage);
-        String fromBranch = branchMatch.first;
+        String issueReferenceFromBranchName = branchMatch.first;
         while (matcher.find()) {
-            if (matcher.group().equals(fromBranch)) return true;
+            if (matcher.group().equals(issueReferenceFromBranchName)) return true;
         }
 
-        String message = "Commit message doesn't contain reference to the issue " + fromBranch +
-                ".\nAre you sure to commit as is?";
+        String branchName = branchMatch.third;
+        String message = "Commit message doesn't contain reference to the issue " + issueReferenceFromBranchName +
+                ".\nCurrent branch name: " + branchName +
+                "\nAre you sure to commit as is?";
         String html = IssueLinkHtmlRenderer.formatTextIntoHtml(project, message);
         int yesNo = Messages.showYesNoDialog(html,
                 "Missing Issue Reference",
