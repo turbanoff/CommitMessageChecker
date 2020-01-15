@@ -18,10 +18,11 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Trinity;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 import com.intellij.openapi.vcs.IssueNavigationConfiguration;
-import com.intellij.openapi.vcs.changes.issueLinks.IssueLinkHtmlRenderer;
 import com.intellij.openapi.vcs.checkin.CheckinHandler;
 import com.intellij.openapi.vcs.ui.RefreshableOnComponent;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.xml.util.XmlStringUtil;
+import static com.intellij.openapi.vcs.changes.issueLinks.IssueLinkHtmlRenderer.formatTextWithLinks;
 
 /**
  * @author Andrey Turbanov
@@ -104,10 +105,12 @@ class IssueReferenceChecker extends CheckinHandler {
         }
 
         String branchName = branchMatch.third;
-        String message = "Commit message doesn't contain reference to the issue " + issueReferenceFromBranchName +
-                ".\nCurrent branch name: " + branchName +
-                "\n\nAre you sure to commit as is?";
-        String html = IssueLinkHtmlRenderer.formatTextIntoHtml(project, message);
+        String html = "<html><head>" + UIUtil.getCssFontDeclaration(UIUtil.getLabelFont()) + "</head><body>" +
+                "Commit message doesn't contain reference to the issue " + formatTextWithLinks(project, issueReferenceFromBranchName) + "<br>" +
+                "Current branch name: <code>" + XmlStringUtil.escapeString(branchName) + "</code><br>" +
+                "<br>" +
+                "Are you sure to commit as is?" +
+                "</body></html>";
         int yesNo = Messages.showYesNoDialog(html,
                 "Missing Issue Reference",
                 UIUtil.getWarningIcon());
