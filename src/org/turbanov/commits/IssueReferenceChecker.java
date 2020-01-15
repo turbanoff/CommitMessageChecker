@@ -106,7 +106,7 @@ class IssueReferenceChecker extends CheckinHandler {
         String branchName = branchMatch.third;
         String message = "Commit message doesn't contain reference to the issue " + issueReferenceFromBranchName +
                 ".\nCurrent branch name: " + branchName +
-                "\nAre you sure to commit as is?";
+                "\n\nAre you sure to commit as is?";
         String html = IssueLinkHtmlRenderer.formatTextIntoHtml(project, message);
         int yesNo = Messages.showYesNoDialog(html,
                 "Missing Issue Reference",

@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>org.turbanov.commits.message.checker</id>
   <name>Commit message checker</name>
-  <version>1.0</version>
+  <version>1.1</version>
   <vendor email="turbanoff@gmail.com" url="https://github.com/turbanoff/CommitMessageChecker">Turbanov Andrey</vendor>
 
   <description><![CDATA[
@@ -10,7 +10,13 @@ Useful with one-branch-per-issue policy.
     ]]></description>
 
   <change-notes><![CDATA[
-    ]]>
+        <html>
+        <b>Changes in version 1.1:</b>
+        <ul>
+          <li>Show branch name in warning message</li>
+        </ul><br>
+        </html>
+        ]]>
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
