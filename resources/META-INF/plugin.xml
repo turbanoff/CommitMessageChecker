@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>org.turbanov.commits.message.checker</id>
-  <name>Commit message checker</name>
-  <version>1.1</version>
+  <name>Commit Message Checker</name>
+  <version>1.2</version>
   <vendor email="turbanoff@gmail.com" url="https://github.com/turbanoff/CommitMessageChecker">Turbanov Andrey</vendor>
 
   <description><![CDATA[
@@ -11,10 +11,14 @@ Useful with one-branch-per-issue policy.
 
   <change-notes><![CDATA[
         <html>
-        <b>Changes in version 1.1:</b>
+        <h3>1.2</h3>
         <ul>
-          <li>Show branch name in warning message</li>
-        </ul><br>
+            <li>Fix CSS styles in warning message</li>
+        </ul>
+        <h3>1.1</h3>
+        <ul>
+            <li>Show branch name in warning message</li>
+        </ul>
         </html>
         ]]>
   </change-notes>

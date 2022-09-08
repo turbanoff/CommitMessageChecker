@@ -105,7 +105,7 @@ class IssueReferenceChecker extends CheckinHandler {
         }
 
         String branchName = branchMatch.third;
-        String html = "<html><head>" + UIUtil.getCssFontDeclaration(UIUtil.getLabelFont()) + "</head><body>" +
+        String html = "<html><body>" +
                 "Commit message doesn't contain reference to the issue " + formatTextWithLinks(project, issueReferenceFromBranchName) + "<br>" +
                 "Current branch name: <code>" + XmlStringUtil.escapeString(branchName) + "</code><br>" +
                 "<br>" +
